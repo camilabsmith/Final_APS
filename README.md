@@ -1,7 +1,9 @@
 # Clasificación automática de etapas del sueño a partir de EEG y EOG
 
 Repositorio para el trabajo final de "Análisis y Procesamiento de Señales" – UNSAM  
-Autora: Camila B. Smith  
+
+Autora: 🌸🌼🌺🌻🌷🌸🌼 Camila B. Smith  🌸🌼🌺🌻🌷🌸🌼🌺🌻 
+
 GitHub: [https://github.com/camilabsmith/Final_APS](https://github.com/camilabsmith/Final_APS)
 
 ---
@@ -102,15 +104,12 @@ Final_APS/
 │       └── hipnogramas_por_sujeto/
 └── scores/                   # (etiquetas json de los técnicos)
 ```
-## Ejecución recomendada
-Ejecuta Descarga_dataset.py para bajar los archivos originales.
 
-Ejecuta extraccion_feat.py para extraer y guardar las características.
+---
 
-Ejecuta entrenamiento_modelos.py para entrenar y evaluar los modelos.
+🌸🌼🌺🌻🌷🌸🌼🌺🌻🌷🌸🌼🌺🌻🌷  
+**¡Gracias por visitar este repositorio!**  
+🌸🌼🌺🌻🌷🌸🌼🌺🌻🌷🌸🌼🌺🌻🌷
 
-Puedes ejecutar Individual.py para análisis visual exploratorio sobre sujetos específicos.
+---
 
-Ejecuta plot_hipnograma.py para graficar hipnogramas reales vs. predichos.
-
-(Opcional) Ajusta y reutiliza las funciones de utils_info.py según necesidades propias.
