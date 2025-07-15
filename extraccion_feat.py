@@ -25,8 +25,8 @@ fpass_eeg = (0.5, 45)
 fstop_eeg = (0.1, 50)
 fpass_eog = (0.3, 40)
 fstop_eog = (0.1, 50)
-ripple = 1
-attenuation = 40
+ripple = 0.5
+attenuation = 20
 
 # === PROCESAMIENTO DE TODOS LOS ARCHIVOS H5 ===
 for archivo in sorted(os.listdir(ruta_datos)):

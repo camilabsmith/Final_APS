@@ -50,64 +50,6 @@ def segmentar(señal, fs, duracion):
     
     return segmentos
 
-def features_temporales(segmento,fs):
-    """
-    Extrae características temporales de los segmentos.
-    
-    Parámetros:
-    - segmento: 1 segmento.
-    
-    Retorna:
-    - features: list, lista de características extraídas.
-    """
-    features = []
-    varianza = np.var(segmento)
-    cruces = np.sum(np.diff(np.sign(segmento)) != 0)
-    
-    return varianza, cruces
-
-def features_espectrales(segmento, fs):
-    f, Pxx = sig.welch(segmento, fs=fs, nperseg=fs*2, noverlap=fs, window='hann')
-    energia_total = np.trapz(Pxx, f)
-
-    bandas = {
-        'delta': (0.5, 4),
-        'theta_baja': (4, 6),
-        'theta_alta': (6, 8),
-        'alfa': (8, 13),
-        'beta': (13, 30),
-        'gamma': (30, 45)
-    }
-
-    proporciones = {}
-    for nombre, (fmin, fmax) in bandas.items():
-        mask = (f >= fmin) & (f <= fmax)
-        energia_banda = np.trapz(Pxx[mask], f[mask])
-        proporciones[nombre] = energia_banda / energia_total if energia_total > 0 else 0
-
-    potencia_media = np.mean(Pxx)
-    freq_pico = f[np.argmax(Pxx)]
-
-    # Banda dominante = frecuencia con mayor energía
-    banda_dominante = freq_pico
-
-    # Relación alfa/delta
-    rel_alpha_delta = proporciones['alfa'] / (proporciones['delta'] + 1e-10)
-
-    return (
-        potencia_media,
-        freq_pico,
-        proporciones['delta'],
-        proporciones['theta_baja'],
-        proporciones['theta_alta'],
-        proporciones['alfa'],
-        proporciones['beta'],
-        proporciones['gamma'],
-        rel_alpha_delta,
-        banda_dominante
-    )
-
-
 
 
 def es_candidato(segmento, fs, umbral=100, ventana_s=2, paso_s=0.25):
@@ -132,27 +74,46 @@ def es_candidato(segmento, fs, umbral=100, ventana_s=2, paso_s=0.25):
         return False
  
 
-def teo(x):
+def teo(x): #teo modificado (no se usa)
     return x[2:-2]**2 - x[1:-3] * x[3:-1] - x[0:-4] * x[4:]
     
 def detector_k_complex(fs, segmento):
     
     if es_candidato(segmento, fs):
-        coeffs = pywt.wavedec(segmento, 'sym6', level=6)
+        coeffs = pywt.wavedec(segmento, 'sym2', level=6)
         a6 = coeffs[0]
         fs_down = fs / 2**6 
-        teo_a6 = teo(a6)
+        teo_a6 = teo_clasico(a6)
         teo_a6_norm = (teo_a6 - np.mean(teo_a6)) / np.std(teo_a6)
         peaks, props = find_peaks(teo_a6_norm,
                                   prominence=4.5,  # cuanto debe destacar
-                                  wlen = int(2 * fs_down), distance = 2 * fs_down, height=3.2)
+                                  wlen = int(2 * fs_down), distance = 2 * fs_down, height=2)
         cant_k_complex = len(peaks)
         return cant_k_complex
     else:
         cant_k_complex = 0
         return cant_k_complex
-        
+    
+def teo_clasico(x):
+    return x[1:-1]**2 - x[0:-2] * x[2:]
 
+        
+def detector_k_complex_version_7_niveles(fs, segmento):
+    if es_candidato(segmento, fs):
+        coeffs = pywt.wavedec(segmento, 'sym2', level=7)
+        a7 = coeffs[0]
+        fs_down = fs / 2**7 
+        teo_a7 = teo_clasico(a7)
+        teo_a7_norm = (teo_a7 - np.mean(teo_a7)) / np.std(teo_a7)
+        peaks, props = find_peaks(teo_a7_norm,
+                                  prominence=4.5,
+                                  wlen=int(2 * fs_down),
+                                  distance=int(2 * fs_down),
+                                  height=2)
+        cant_k_complex = len(peaks)
+        return cant_k_complex
+    else:
+        return 0
 
 
 from scipy.signal import welch
@@ -187,7 +148,7 @@ def features_eog(segmento, fs):
     # --- Cruces por cero
     cruces_cero = np.sum((x[:-1] * x[1:]) < 0)
 
-    # --- Detección de picos con std local y distancia mínima
+    # --- Detec de picos con std local y distancia min
     std = np.std(x)
     dist_min = int(0.1 * fs)
     picos_pos, _ = find_peaks(x, height=std, distance=dist_min)
@@ -269,10 +230,10 @@ def features_eeg(segmento, fs):
         'alfa_lento': rel_alfa_lento
     }
 
-    # --- Entropía de Shannon
+    # --- Entrop de Shannon
     hist, bin_edges = np.histogram(x, bins=100, density=True)
-    hist = hist[hist > 0]  # evitamos log(0)
-    entropia_shannon = shannon_entropy(hist, base=2)  # bits
+    hist = hist[hist > 0]  
+    entropia_shannon = shannon_entropy(hist, base=2)  
 
     return varianza, cruces_cero, proporciones, relaciones, entropia_shannon
 
